@@ -3,6 +3,19 @@
 import Link from "next/link";
 import { statusFor, type Tunnel } from "../lib/useDecisions";
 
+// Horizontal scatter (px) and stagger (s) for each falling grain of the
+// breakthrough spill — spread out so they don't all drop as one clump.
+const SPILL_PARTICLES = [
+  { dx: -11, delay: 0 },
+  { dx: -3, delay: 0.09 },
+  { dx: 6, delay: 0.17 },
+  { dx: -7, delay: 0.27 },
+  { dx: 2, delay: 0.36 },
+  { dx: 10, delay: 0.44 },
+  { dx: -4, delay: 0.55 },
+  { dx: 4, delay: 0.65 },
+];
+
 export default function TunnelCard({
   decisionId,
   tunnel,
@@ -68,11 +81,25 @@ export default function TunnelCard({
         <span className="tunnel__foot-end">100m</span>
       </div>
 
-      <Link className="tunnel__notes-link" href={`/decisions/${decisionId}/bores/${tunnel.id}`}>
-        {tunnel.notes.trim() ? "field notes →" : "+ add field notes"}
-      </Link>
+      <div className="tunnel__bottom">
+        <Link className="tunnel__notes-link" href={`/decisions/${decisionId}/bores/${tunnel.id}`}>
+          {tunnel.notes.trim() ? "field notes →" : "+ add field notes"}
+        </Link>
 
-      {tunnel.fill >= 100 && <div className="tunnel__spill" aria-hidden="true" />}
+        {tunnel.fill >= 100 && (
+          <div className="tunnel__spill" aria-hidden="true">
+            {SPILL_PARTICLES.map((p, i) => (
+              <div
+                key={i}
+                className="tunnel__spill-particle"
+                style={{ "--dx": `${p.dx}px`, "--delay": `${p.delay}s` } as React.CSSProperties}
+              />
+            ))}
+            <div className="tunnel__spill-heap tunnel__spill-heap--base" />
+            <div className="tunnel__spill-heap tunnel__spill-heap--peak" />
+          </div>
+        )}
+      </div>
     </article>
   );
 }
