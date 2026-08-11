@@ -25,6 +25,7 @@ export type Decision = {
   id: string;
   seq: number;
   name: string;
+  notes: string;
   tunnels: Tunnel[];
 };
 
@@ -87,6 +88,7 @@ export function useDecisions(uid: string | null) {
               id: d.id,
               seq: data.seq ?? 0,
               name: data.name ?? "",
+              notes: data.notes ?? "",
               tunnels: Array.isArray(data.tunnels)
                 ? data.tunnels.map((t: Partial<Tunnel>) => ({ ...t, notes: t.notes ?? "" }) as Tunnel)
                 : [],
@@ -121,12 +123,13 @@ export function useDecisions(uid: string | null) {
   }, []);
 
   // Patches local state immediately, then writes to Firestore after `delay`
-  // of inactivity on this key — shared by the fill slider and the notes
-  // editor so neither hammers the database on every tick/keystroke.
-  function writeDebounced(key: string, decisionId: string, tunnels: Tunnel[], delay: number) {
+  // of inactivity on this key — shared by the fill slider and both notes
+  // editors (bore-level and decision-level) so none of them hammer the
+  // database on every tick/keystroke.
+  function writeDebounced(key: string, decisionId: string, patch: Partial<Decision>, delay: number) {
     const existing = writeTimers.current.get(key);
     if (existing) clearTimeout(existing.timer);
-    const flush = () => void updateDoc(decisionDoc(decisionId), { tunnels });
+    const flush = () => void updateDoc(decisionDoc(decisionId), patch);
     const timer = setTimeout(() => {
       writeTimers.current.delete(key);
       flush();
@@ -158,9 +161,16 @@ export function useDecisions(uid: string | null) {
     const ref = doc(collection(db, "users", uid, "decisions"));
     const seq = decisionsRef.current.reduce((max, d) => Math.max(max, d.seq || 0), 0) + 1;
     const name = "DECISION-" + String(seq).padStart(2, "0");
-    setLocal([...decisionsRef.current, { id: ref.id, seq, name, tunnels: [] }]);
-    void setDoc(ref, { seq, name, tunnels: [] });
+    setLocal([...decisionsRef.current, { id: ref.id, seq, name, notes: "", tunnels: [] }]);
+    void setDoc(ref, { seq, name, notes: "", tunnels: [] });
     return ref.id;
+  }
+
+  // Fires on every keystroke in the decision's own notes editor: update
+  // local state instantly, debounce the write.
+  function updateDecisionNotes(id: string, notes: string) {
+    patchDecision(id, { notes });
+    writeDebounced(`decision-notes:${id}`, id, { notes }, NOTES_DEBOUNCE_MS);
   }
 
   // Live-typing state while a name input is focused: local only, no network.
@@ -204,7 +214,7 @@ export function useDecisions(uid: string | null) {
       decisionId,
       decision.tunnels.map((t) => (t.id === tunnelId ? { ...t, fill } : t))
     );
-    writeDebounced(`fill:${decisionId}:${tunnelId}`, decisionId, tunnels, FILL_DEBOUNCE_MS);
+    writeDebounced(`fill:${decisionId}:${tunnelId}`, decisionId, { tunnels }, FILL_DEBOUNCE_MS);
   }
 
   // Fires on every keystroke in the notes editor: update local state
@@ -216,7 +226,7 @@ export function useDecisions(uid: string | null) {
       decisionId,
       decision.tunnels.map((t) => (t.id === tunnelId ? { ...t, notes } : t))
     );
-    writeDebounced(`notes:${decisionId}:${tunnelId}`, decisionId, tunnels, NOTES_DEBOUNCE_MS);
+    writeDebounced(`notes:${decisionId}:${tunnelId}`, decisionId, { tunnels }, NOTES_DEBOUNCE_MS);
   }
 
   function renameTunnel(decisionId: string, tunnelId: string, name: string) {
@@ -256,6 +266,7 @@ export function useDecisions(uid: string | null) {
     addDecision,
     renameDecision,
     commitDecisionName,
+    updateDecisionNotes,
     removeDecision,
     addTunnel,
     updateTunnelFill,

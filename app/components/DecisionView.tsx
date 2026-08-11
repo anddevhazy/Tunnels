@@ -42,6 +42,9 @@ export default function DecisionView({ id }: { id: string }) {
         <Link className="breadcrumb" href="/">
           ← decisions
         </Link>
+        <Link className="breadcrumb breadcrumb--notes" href={`/decisions/${decision.id}/notes`}>
+          {decision.notes.trim() ? "decision notes →" : "+ add decision notes"}
+        </Link>
       </div>
 
       <header className="masthead masthead--decision">
