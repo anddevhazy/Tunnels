@@ -31,6 +31,15 @@
      earth-tone background-color so it reads as packed dirt/rock instead of
      flat color, without shipping a raster image asset. */
   --dirt-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch' result='t'/%3E%3CfeColorMatrix in='t' type='matrix' values='0 0 0 0 0.28 0 0 0 0 0.2 0 0 0 0 0.12 0 0 0 0.95 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+
+  /* A torn rock-face silhouette instead of a rounded pill cap: jagged at the
+     left (tunnel entrance) and right (blind end / current boring face),
+     straight top and bottom (the shaft walls). Percentage-based so it works
+     on any element regardless of width, including the fill bar as it grows. */
+  --rock-edge: polygon(
+    6% 0%, 1% 9%, 7% 18%, 0% 27%, 5% 36%, 1% 45%, 8% 54%, 2% 63%, 6% 72%, 0% 81%, 4% 90%, 1% 100%,
+    99% 100%, 94% 91%, 100% 82%, 93% 73%, 98% 64%, 92% 55%, 99% 46%, 94% 37%, 100% 28%, 93% 19%, 97% 10%, 94% 0%
+  );
 }
 
 :root[data-theme="dark"] {
@@ -288,13 +297,12 @@ a {
 .shaft__bore {
   position: relative;
   height: 30px;
-  border-radius: 15px;
+  clip-path: var(--rock-edge);
   background-color: var(--wall);
   background-image: var(--dirt-grain);
   background-size: 72px 72px;
   background-repeat: repeat;
   background-blend-mode: multiply;
-  overflow: hidden;
   box-shadow: inset 0 2px 4px var(--shadow-inset);
 }
 
@@ -302,7 +310,7 @@ a {
   position: relative;
   height: 100%;
   width: var(--fill, 0%);
-  border-radius: 15px 0 0 15px;
+  clip-path: var(--rock-edge);
   background-color: var(--amber);
   background-image:
     radial-gradient(circle at 30% 35%, rgba(0, 0, 0, 0.4) 0 1.5px, transparent 2px),
@@ -318,10 +326,6 @@ a {
     72px 72px;
   background-repeat: repeat;
   background-blend-mode: multiply, multiply, multiply, soft-light, multiply;
-}
-
-.shaft__bore[data-full="true"] .shaft__fill {
-  border-radius: 15px;
 }
 
 .shaft__head {
@@ -383,7 +387,6 @@ a {
 .shaft__slider:focus-visible {
   outline: 2px solid var(--blueprint);
   outline-offset: 2px;
-  border-radius: 15px;
 }
 
 .tunnel__foot {

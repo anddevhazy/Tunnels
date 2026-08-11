@@ -45,11 +45,7 @@ export default function TunnelCard({
 
       <div className="shaft">
         <div className="shaft__ruler" />
-        <div
-          className="shaft__bore"
-          data-full={tunnel.fill >= 100 ? "true" : "false"}
-          style={{ "--fill": `${tunnel.fill}%` } as React.CSSProperties}
-        >
+        <div className="shaft__bore" style={{ "--fill": `${tunnel.fill}%` } as React.CSSProperties}>
           <div className="shaft__fill">
             <div className="shaft__head" />
           </div>
