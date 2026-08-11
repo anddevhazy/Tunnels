@@ -1,0 +1,404 @@
+:root {
+  --bg: #14181d;
+  --panel: #1c2128;
+  --wall: #2a2f38;
+  --wall-line: #3a4048;
+  --amber: #e8a33d;
+  --amber-glow: #ffcf7a;
+  --blueprint: #4a8b9a;
+  --text: #edeae3;
+  --text-muted: #8a8f98;
+  --text-faint: #565c66;
+  --danger: #c96a4f;
+
+  --display: var(--font-display), sans-serif;
+  --body: var(--font-body), sans-serif;
+  --mono: var(--font-mono), monospace;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html {
+  height: 100%;
+  color-scheme: dark;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+body {
+  min-height: 100%;
+  background: var(--bg);
+  background-image:
+    linear-gradient(var(--wall-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--wall-line) 1px, transparent 1px);
+  background-size: 32px 32px;
+  background-attachment: fixed;
+  background-position: -1px -1px;
+  color: var(--text);
+  font-family: var(--body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .shaft__head {
+    transition: left 0.12s ease-out;
+  }
+  .tunnel {
+    animation: rise 0.35s ease-out both;
+  }
+  .add-btn {
+    transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 56px 24px 96px;
+}
+
+/* Masthead */
+
+.masthead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  border-bottom: 1px solid var(--wall-line);
+  padding-bottom: 18px;
+  margin-bottom: 8px;
+}
+
+.masthead__title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.masthead__mark {
+  color: var(--amber);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.masthead h1 {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(28px, 5vw, 38px);
+  letter-spacing: 0.06em;
+  margin: 0;
+}
+
+.masthead__meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.masthead__label {
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--blueprint);
+}
+
+/* Ledger head */
+
+.ledger-head {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 4px;
+  margin: 28px 0 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+/* Tunnel list */
+
+.tunnels {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.tunnel {
+  background: var(--panel);
+  border: 1px solid var(--wall-line);
+  border-radius: 10px;
+  padding: 18px 20px 16px;
+}
+
+.tunnel__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.tunnel__id {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--blueprint);
+  min-width: 36px;
+}
+
+.tunnel__name {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 16px;
+  letter-spacing: 0.02em;
+  flex: 1;
+  outline: none;
+  border-radius: 4px;
+  padding: 2px 6px;
+  margin: -2px -6px;
+  text-transform: uppercase;
+}
+
+.tunnel__name:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+.tunnel__name:focus {
+  background: rgba(74, 139, 154, 0.12);
+}
+
+.tunnel__pct {
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: 18px;
+  color: var(--amber);
+  min-width: 46px;
+  text-align: right;
+}
+
+.tunnel__pct-sign {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-left: 1px;
+}
+
+.tunnel__remove {
+  background: none;
+  border: none;
+  color: var(--text-faint);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+}
+
+.tunnel__remove:hover {
+  color: var(--danger);
+  background: rgba(201, 106, 79, 0.1);
+}
+
+/* Shaft */
+
+.shaft {
+  position: relative;
+}
+
+.shaft__ruler {
+  height: 8px;
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--wall-line) 0,
+    var(--wall-line) 1px,
+    transparent 1px,
+    transparent 5%
+  );
+  margin-bottom: 4px;
+}
+
+.shaft__bore {
+  position: relative;
+  height: 30px;
+  border-radius: 15px;
+  background: var(--wall);
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.35);
+}
+
+.shaft__fill {
+  position: relative;
+  height: 100%;
+  width: var(--fill, 0%);
+  border-radius: 15px 0 0 15px;
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--amber) 0,
+    var(--amber) 6px,
+    #d68f30 6px,
+    #d68f30 12px
+  );
+}
+
+.shaft__bore[data-full="true"] .shaft__fill {
+  border-radius: 15px;
+}
+
+.shaft__head {
+  position: absolute;
+  top: 0;
+  right: -1px;
+  width: 14px;
+  height: 100%;
+  background: radial-gradient(circle at center, var(--amber-glow), var(--amber) 70%);
+  box-shadow: 0 0 12px 2px rgba(232, 163, 61, 0.65);
+  border-radius: 40%;
+}
+
+.shaft__slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 30px;
+  margin: -30px 0 0;
+  position: relative;
+  background: transparent;
+  cursor: pointer;
+}
+
+.shaft__slider::-webkit-slider-runnable-track {
+  height: 30px;
+  background: transparent;
+}
+.shaft__slider::-moz-range-track {
+  height: 30px;
+  background: transparent;
+}
+
+.shaft__slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 0;
+  height: 0;
+  border-top: 9px solid transparent;
+  border-bottom: 9px solid transparent;
+  border-left: 14px solid var(--text);
+  margin-top: 6px;
+  cursor: grab;
+  filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.6));
+}
+.shaft__slider::-moz-range-thumb {
+  width: 0;
+  height: 0;
+  border-top: 9px solid transparent;
+  border-bottom: 9px solid transparent;
+  border-left: 14px solid var(--text);
+  border-radius: 0;
+  cursor: grab;
+  filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.6));
+}
+
+.shaft__slider:active::-webkit-slider-thumb {
+  cursor: grabbing;
+}
+.shaft__slider:focus-visible {
+  outline: 2px solid var(--blueprint);
+  outline-offset: 2px;
+  border-radius: 15px;
+}
+
+.tunnel__foot {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-faint);
+  letter-spacing: 0.06em;
+}
+
+.tunnel__foot-status {
+  text-transform: uppercase;
+}
+
+/* Empty state */
+
+.empty {
+  text-align: center;
+  color: var(--text-faint);
+  font-family: var(--mono);
+  font-size: 13px;
+  padding: 40px 0;
+}
+.empty strong {
+  color: var(--amber);
+}
+
+/* Add button */
+
+.add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  margin-top: 24px;
+  padding: 14px;
+  background: transparent;
+  border: 1px dashed var(--wall-line);
+  border-radius: 10px;
+  color: var(--text-muted);
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.add-btn:hover {
+  border-color: var(--amber);
+  color: var(--amber);
+  background: rgba(232, 163, 61, 0.05);
+}
+
+.add-btn:active {
+  transform: scale(0.99);
+}
+
+.add-btn__plus {
+  font-family: var(--display);
+  font-size: 18px;
+  line-height: 1;
+}
+
+@media (max-width: 480px) {
+  .tunnel__name {
+    font-size: 14px;
+  }
+  .masthead__meta {
+    display: none;
+  }
+}
