@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { useDecisionsContext } from "../lib/DecisionsProvider";
+import { usePersistedTextareaHeight } from "../lib/usePersistedTextareaHeight";
 
 export default function DecisionNotes({ decisionId }: { decisionId: string }) {
   const { decisions, ready, renameDecision, commitDecisionName, updateDecisionNotes } = useDecisionsContext();
+  const notesRef = usePersistedTextareaHeight(`decision:${decisionId}`);
 
   const decision = decisions.find((d) => d.id === decisionId);
 
@@ -59,6 +61,7 @@ export default function DecisionNotes({ decisionId }: { decisionId: string }) {
         </label>
         <textarea
           id="decision-notes"
+          ref={notesRef}
           className="notes__editor"
           value={decision.notes}
           readOnly={concluded}

@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { useDecisionsContext } from "../lib/DecisionsProvider";
 import { statusFor } from "../lib/useDecisions";
+import { usePersistedTextareaHeight } from "../lib/usePersistedTextareaHeight";
 
 export default function BoreNotes({ decisionId, tunnelId }: { decisionId: string; tunnelId: string }) {
   const { decisions, ready, renameTunnel, commitTunnelName, updateTunnelNotes } = useDecisionsContext();
+  const notesRef = usePersistedTextareaHeight(`bore:${decisionId}:${tunnelId}`);
 
   const decision = decisions.find((d) => d.id === decisionId);
   const tunnel = decision?.tunnels.find((t) => t.id === tunnelId);
@@ -76,6 +78,7 @@ export default function BoreNotes({ decisionId, tunnelId }: { decisionId: string
         </label>
         <textarea
           id="bore-notes"
+          ref={notesRef}
           className="notes__editor"
           value={tunnel.notes}
           readOnly={concluded}
