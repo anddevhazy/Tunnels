@@ -1,5 +1,5 @@
-import Tunnels from "./components/Tunnels";
+import DecisionsIndex from "./components/DecisionsIndex";
 
 export default function Home() {
-  return <Tunnels />;
+  return <DecisionsIndex />;
 }
