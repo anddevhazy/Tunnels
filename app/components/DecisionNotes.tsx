@@ -24,9 +24,6 @@ export default function DecisionNotes({ decisionId }: { decisionId: string }) {
   if (!decision) return null;
 
   const concluded = Boolean(decision.concludedAt);
-  const avg = decision.tunnels.length
-    ? Math.round(decision.tunnels.reduce((sum, t) => sum + t.fill, 0) / decision.tunnels.length)
-    : 0;
 
   return (
     <div className="page">
@@ -53,7 +50,6 @@ export default function DecisionNotes({ decisionId }: { decisionId: string }) {
         {concluded && <span className="decision__stamp">concluded</span>}
         <span className="masthead__label">
           {decision.tunnels.length} bore{decision.tunnels.length === 1 ? "" : "s"}
-          {decision.tunnels.length ? ` · ${avg}% avg` : ""}
         </span>
       </header>
 

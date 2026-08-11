@@ -74,9 +74,6 @@ export default function DecisionsIndex() {
 
       <main className="decisions" aria-live="polite">
         {shown.map((decision) => {
-          const avg = decision.tunnels.length
-            ? Math.round(decision.tunnels.reduce((sum, t) => sum + t.fill, 0) / decision.tunnels.length)
-            : 0;
           const concluded = Boolean(decision.concludedAt);
           return (
             <article
@@ -104,7 +101,6 @@ export default function DecisionsIndex() {
                 <span className="decision__count">
                   {decision.tunnels.length} bore{decision.tunnels.length === 1 ? "" : "s"}
                 </span>
-                <span className="decision__avg">{decision.tunnels.length ? `${avg}% avg` : "—"}</span>
               </div>
               {!concluded && (
                 <button
