@@ -1,10 +1,10 @@
 :root {
   --bg: #ece4d3;
   --panel: #faf7ef;
-  --wall: #ded2b3;
+  --wall: #7a5233;
+  --bore-light: #eddbb0;
   --wall-line: #cabb96;
   --amber: #a8651c;
-  --amber-alt: #8a5216;
   --amber-glow: #e0932f;
   --blueprint: #2f6b7a;
   --text: #2a241b;
@@ -45,10 +45,10 @@
 :root[data-theme="dark"] {
   --bg: #14181d;
   --panel: #1c2128;
-  --wall: #2a2f38;
+  --wall: #3d2a1a;
+  --bore-light: #e0c090;
   --wall-line: #3a4048;
   --amber: #e8a33d;
-  --amber-alt: #d68f30;
   --amber-glow: #ffcf7a;
   --blueprint: #4a8b9a;
   --text: #edeae3;
@@ -311,12 +311,12 @@ a {
   height: 100%;
   width: var(--fill, 0%);
   clip-path: var(--rock-edge);
-  background-color: var(--amber);
+  background-color: var(--bore-light);
   background-image:
-    radial-gradient(circle at 30% 35%, rgba(0, 0, 0, 0.4) 0 1.5px, transparent 2px),
-    radial-gradient(circle at 75% 65%, rgba(0, 0, 0, 0.35) 0 1px, transparent 1.6px),
-    radial-gradient(circle at 15% 75%, rgba(0, 0, 0, 0.3) 0 1.3px, transparent 1.9px),
-    radial-gradient(circle at 60% 20%, rgba(255, 255, 255, 0.25) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 30% 35%, rgba(0, 0, 0, 0.3) 0 1.5px, transparent 2px),
+    radial-gradient(circle at 75% 65%, rgba(0, 0, 0, 0.26) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 15% 75%, rgba(0, 0, 0, 0.22) 0 1.3px, transparent 1.9px),
+    radial-gradient(circle at 60% 20%, rgba(255, 255, 255, 0.5) 0 1px, transparent 1.6px),
     var(--dirt-grain);
   background-size:
     17px 17px,
