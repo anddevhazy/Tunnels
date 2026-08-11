@@ -18,6 +18,7 @@ export type Tunnel = {
   seq: number;
   name: string;
   fill: number;
+  notes: string;
 };
 
 export type Decision = {
@@ -28,6 +29,7 @@ export type Decision = {
 };
 
 const FILL_DEBOUNCE_MS = 400;
+const NOTES_DEBOUNCE_MS = 600;
 
 function makeId() {
   return typeof crypto !== "undefined" && crypto.randomUUID
@@ -48,9 +50,9 @@ export function useDecisions(uid: string | null) {
   // array field) always read the latest array, even right after a local
   // optimistic update Firestore's onSnapshot hasn't echoed back yet.
   const decisionsRef = useRef<Decision[]>([]);
-  // One pending debounce timer per tunnel, so dragging a slider doesn't fire
-  // a Firestore write on every pixel of movement.
-  const fillTimers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
+  // One pending debounce timer per (field, tunnel), so dragging a slider or
+  // typing notes doesn't fire a Firestore write on every tick/keystroke.
+  const writeTimers = useRef(new Map<string, { timer: ReturnType<typeof setTimeout>; flush: () => void }>());
 
   useEffect(() => {
     decisionsRef.current = [];
@@ -62,35 +64,75 @@ export function useDecisions(uid: string | null) {
     }
 
     setReady(false);
-    const q = query(collection(db, "users", uid, "decisions"), orderBy("seq", "asc"));
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const next = snapshot.docs.map((d) => {
-          const data = d.data();
-          return {
-            id: d.id,
-            seq: data.seq ?? 0,
-            name: data.name ?? "",
-            tunnels: Array.isArray(data.tunnels) ? data.tunnels : [],
-          } as Decision;
-        });
-        decisionsRef.current = next;
-        setDecisions(next);
-        setReady(true);
-      },
-      () => setReady(true)
-    );
-    return unsubscribe;
+
+    // Deferred by a tick on purpose. In dev, React StrictMode mounts every
+    // effect twice (mount -> cleanup -> mount) to surface missing-cleanup
+    // bugs. If we subscribed synchronously here, that first throwaway mount
+    // would open a real Firestore connection just to tear it down a moment
+    // later — and the SDK doesn't cleanly catch a request aborted that
+    // fast, so it surfaces as an unhandled `AbortError`. Deferring the
+    // actual subscribe means the throwaway mount's cleanup runs (via
+    // clearTimeout) before any connection is ever opened; only the
+    // surviving mount subscribes for real. The delay is a single tick —
+    // imperceptible, and `ready` still gates the UI until data arrives.
+    let unsubscribe = () => {};
+    const timer = setTimeout(() => {
+      const q = query(collection(db, "users", uid, "decisions"), orderBy("seq", "asc"));
+      unsubscribe = onSnapshot(
+        q,
+        (snapshot) => {
+          const next = snapshot.docs.map((d) => {
+            const data = d.data();
+            return {
+              id: d.id,
+              seq: data.seq ?? 0,
+              name: data.name ?? "",
+              tunnels: Array.isArray(data.tunnels)
+                ? data.tunnels.map((t: Partial<Tunnel>) => ({ ...t, notes: t.notes ?? "" }) as Tunnel)
+                : [],
+            } as Decision;
+          });
+          decisionsRef.current = next;
+          setDecisions(next);
+          setReady(true);
+        },
+        () => setReady(true)
+      );
+    }, 0);
+
+    return () => {
+      clearTimeout(timer);
+      unsubscribe();
+    };
   }, [uid]);
 
+  // Flush (not just discard) pending debounced writes on teardown, so a
+  // slider drag or a few typed words aren't silently lost if this provider
+  // ever unmounts mid-debounce (e.g. sign-out).
   useEffect(() => {
-    const timers = fillTimers.current;
+    const timers = writeTimers.current;
     return () => {
-      timers.forEach((timer) => clearTimeout(timer));
+      timers.forEach(({ timer, flush }) => {
+        clearTimeout(timer);
+        flush();
+      });
       timers.clear();
     };
   }, []);
+
+  // Patches local state immediately, then writes to Firestore after `delay`
+  // of inactivity on this key — shared by the fill slider and the notes
+  // editor so neither hammers the database on every tick/keystroke.
+  function writeDebounced(key: string, decisionId: string, tunnels: Tunnel[], delay: number) {
+    const existing = writeTimers.current.get(key);
+    if (existing) clearTimeout(existing.timer);
+    const flush = () => void updateDoc(decisionDoc(decisionId), { tunnels });
+    const timer = setTimeout(() => {
+      writeTimers.current.delete(key);
+      flush();
+    }, delay);
+    writeTimers.current.set(key, { timer, flush });
+  }
 
   function setLocal(next: Decision[]) {
     decisionsRef.current = next;
@@ -143,7 +185,13 @@ export function useDecisions(uid: string | null) {
     const decision = decisionsRef.current.find((d) => d.id === decisionId);
     if (!decision) return;
     const seq = decision.tunnels.reduce((max, t) => Math.max(max, t.seq || 0), 0) + 1;
-    const tunnel: Tunnel = { id: makeId(), seq, name: "BORE-" + String(seq).padStart(2, "0"), fill: 0 };
+    const tunnel: Tunnel = {
+      id: makeId(),
+      seq,
+      name: "BORE-" + String(seq).padStart(2, "0"),
+      fill: 0,
+      notes: "",
+    };
     const tunnels = patchTunnels(decisionId, [...decision.tunnels, tunnel]);
     void updateDoc(decisionDoc(decisionId), { tunnels });
   }
@@ -156,17 +204,19 @@ export function useDecisions(uid: string | null) {
       decisionId,
       decision.tunnels.map((t) => (t.id === tunnelId ? { ...t, fill } : t))
     );
+    writeDebounced(`fill:${decisionId}:${tunnelId}`, decisionId, tunnels, FILL_DEBOUNCE_MS);
+  }
 
-    const timerKey = `${decisionId}:${tunnelId}`;
-    const existing = fillTimers.current.get(timerKey);
-    if (existing) clearTimeout(existing);
-    fillTimers.current.set(
-      timerKey,
-      setTimeout(() => {
-        fillTimers.current.delete(timerKey);
-        void updateDoc(decisionDoc(decisionId), { tunnels });
-      }, FILL_DEBOUNCE_MS)
+  // Fires on every keystroke in the notes editor: update local state
+  // instantly, debounce the write.
+  function updateTunnelNotes(decisionId: string, tunnelId: string, notes: string) {
+    const decision = decisionsRef.current.find((d) => d.id === decisionId);
+    if (!decision) return;
+    const tunnels = patchTunnels(
+      decisionId,
+      decision.tunnels.map((t) => (t.id === tunnelId ? { ...t, notes } : t))
     );
+    writeDebounced(`notes:${decisionId}:${tunnelId}`, decisionId, tunnels, NOTES_DEBOUNCE_MS);
   }
 
   function renameTunnel(decisionId: string, tunnelId: string, name: string) {
@@ -209,6 +259,7 @@ export function useDecisions(uid: string | null) {
     removeDecision,
     addTunnel,
     updateTunnelFill,
+    updateTunnelNotes,
     renameTunnel,
     commitTunnelName,
     removeTunnel,

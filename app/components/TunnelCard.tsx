@@ -1,14 +1,17 @@
 "use client";
 
+import Link from "next/link";
 import { statusFor, type Tunnel } from "../lib/useDecisions";
 
 export default function TunnelCard({
+  decisionId,
   tunnel,
   onFill,
   onRename,
   onCommitName,
   onRemove,
 }: {
+  decisionId: string;
   tunnel: Tunnel;
   onFill: (fill: number) => void;
   onRename: (name: string) => void;
@@ -68,6 +71,10 @@ export default function TunnelCard({
         <span className="tunnel__foot-status">{statusFor(tunnel.fill)}</span>
         <span className="tunnel__foot-end">100m</span>
       </div>
+
+      <Link className="tunnel__notes-link" href={`/decisions/${decisionId}/bores/${tunnel.id}`}>
+        {tunnel.notes.trim() ? "field notes →" : "+ add field notes"}
+      </Link>
     </article>
   );
 }

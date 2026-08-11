@@ -71,6 +71,7 @@ export default function DecisionView({ id }: { id: string }) {
         {decision.tunnels.map((tunnel) => (
           <TunnelCard
             key={tunnel.id}
+            decisionId={decision.id}
             tunnel={tunnel}
             onFill={(fill) => updateTunnelFill(decision.id, tunnel.id, fill)}
             onRename={(name) => renameTunnel(decision.id, tunnel.id, name)}

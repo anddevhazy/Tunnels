@@ -1,6 +1,6 @@
 import { getApps, initializeApp, type FirebaseOptions } from "firebase/app";
 import { getAuth, type Auth } from "firebase/auth";
-import { getFirestore, initializeFirestore, type Firestore } from "firebase/firestore";
+import { getFirestore, type Firestore } from "firebase/firestore";
 
 const firebaseConfig: FirebaseOptions = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -21,19 +21,9 @@ let auth: Auth;
 let db: Firestore;
 
 if (firebaseConfigured) {
-  // initializeFirestore() may only be called once per app instance — on Fast
-  // Refresh the module can re-run against an app that's already configured,
-  // so only the first pass sets transport options; later passes just attach.
-  const isNewApp = !getApps().length;
-  const app = isNewApp ? initializeApp(firebaseConfig) : getApps()[0];
+  const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
   auth = getAuth(app);
-  db = isNewApp
-    ? // Forces Firestore's real-time listener onto long-polling instead of the
-      // fetch-streams transport, which otherwise throws an unhandled
-      // "AbortError: The user aborted a request" when a listener detaches
-      // (e.g. client-side navigation) mid-stream.
-      initializeFirestore(app, { experimentalAutoDetectLongPolling: true })
-    : getFirestore(app);
+  db = getFirestore(app);
 } else {
   auth = undefined as unknown as Auth;
   db = undefined as unknown as Firestore;

@@ -26,6 +26,11 @@
   --display: var(--font-display), sans-serif;
   --body: var(--font-body), sans-serif;
   --mono: var(--font-mono), monospace;
+
+  /* Tileable grain, built from SVG fractal noise. Multiplied over a solid
+     earth-tone background-color so it reads as packed dirt/rock instead of
+     flat color, without shipping a raster image asset. */
+  --dirt-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch' result='t'/%3E%3CfeColorMatrix in='t' type='matrix' values='0 0 0 0 0.28 0 0 0 0 0.2 0 0 0 0 0.12 0 0 0 0.95 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 :root[data-theme="dark"] {
@@ -284,7 +289,11 @@ a {
   position: relative;
   height: 30px;
   border-radius: 15px;
-  background: var(--wall);
+  background-color: var(--wall);
+  background-image: var(--dirt-grain);
+  background-size: 72px 72px;
+  background-repeat: repeat;
+  background-blend-mode: multiply;
   overflow: hidden;
   box-shadow: inset 0 2px 4px var(--shadow-inset);
 }
@@ -294,13 +303,21 @@ a {
   height: 100%;
   width: var(--fill, 0%);
   border-radius: 15px 0 0 15px;
-  background: repeating-linear-gradient(
-    -45deg,
-    var(--amber) 0,
-    var(--amber) 6px,
-    var(--amber-alt) 6px,
-    var(--amber-alt) 12px
-  );
+  background-color: var(--amber);
+  background-image:
+    radial-gradient(circle at 30% 35%, rgba(0, 0, 0, 0.4) 0 1.5px, transparent 2px),
+    radial-gradient(circle at 75% 65%, rgba(0, 0, 0, 0.35) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 15% 75%, rgba(0, 0, 0, 0.3) 0 1.3px, transparent 1.9px),
+    radial-gradient(circle at 60% 20%, rgba(255, 255, 255, 0.25) 0 1px, transparent 1.6px),
+    var(--dirt-grain);
+  background-size:
+    17px 17px,
+    23px 23px,
+    13px 13px,
+    19px 19px,
+    72px 72px;
+  background-repeat: repeat;
+  background-blend-mode: multiply, multiply, multiply, soft-light, multiply;
 }
 
 .shaft__bore[data-full="true"] .shaft__fill {
@@ -381,6 +398,21 @@ a {
 
 .tunnel__foot-status {
   text-transform: uppercase;
+}
+
+.tunnel__notes-link {
+  display: block;
+  margin-top: 12px;
+  text-align: right;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.tunnel__notes-link:hover {
+  color: var(--blueprint);
 }
 
 /* Decisions index */
@@ -526,6 +558,54 @@ a {
 }
 .decision-title:focus {
   background: var(--tint-blueprint);
+}
+
+.tunnel__pct--static {
+  flex: none;
+}
+
+.shaft--static {
+  margin-bottom: 4px;
+}
+
+/* Bore notes */
+
+.notes {
+  margin-top: 32px;
+}
+
+.notes__label {
+  display: block;
+  margin-bottom: 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.notes__editor {
+  display: block;
+  width: 100%;
+  min-height: 320px;
+  resize: vertical;
+  background: var(--panel);
+  border: 1px solid var(--wall-line);
+  border-radius: 10px;
+  padding: 16px 18px;
+  color: var(--text);
+  font-family: var(--body);
+  font-size: 15px;
+  line-height: 1.6;
+  outline: none;
+}
+
+.notes__editor:focus {
+  border-color: var(--blueprint);
+}
+
+.notes__editor::placeholder {
+  color: var(--text-faint);
 }
 
 /* Auth gate */
