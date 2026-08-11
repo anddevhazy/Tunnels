@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
+import { AuthProvider } from "./lib/AuthProvider";
 import { DecisionsProvider } from "./lib/DecisionsProvider";
 import ThemeToggle from "./components/ThemeToggle";
+import AccountBadge from "./components/AccountBadge";
+import AuthGate from "./components/AuthGate";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -48,8 +51,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body>
-        <ThemeToggle />
-        <DecisionsProvider>{children}</DecisionsProvider>
+        <AuthProvider>
+          <div className="corner-controls">
+            <AccountBadge />
+            <ThemeToggle />
+          </div>
+          <DecisionsProvider>
+            <AuthGate>{children}</AuthGate>
+          </DecisionsProvider>
+        </AuthProvider>
       </body>
     </html>
   );

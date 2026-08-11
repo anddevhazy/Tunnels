@@ -528,6 +528,74 @@ a {
   background: var(--tint-blueprint);
 }
 
+/* Auth gate */
+
+.gate {
+  max-width: 420px;
+  margin: 18vh auto 0;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.gate .masthead__mark {
+  font-size: 30px;
+}
+
+.gate__title {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(22px, 5vw, 30px);
+  letter-spacing: 0.06em;
+  margin: 0;
+}
+
+.gate__label {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--blueprint);
+  margin: 0;
+}
+
+.gate__signin {
+  margin-top: 8px;
+  padding: 12px 22px;
+  background: var(--amber);
+  border: none;
+  border-radius: 8px;
+  color: var(--panel);
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+
+.gate__signin:hover {
+  background: var(--amber-glow);
+}
+
+.gate__body {
+  font-family: var(--body);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.gate__body code {
+  font-family: var(--mono);
+  font-size: 12px;
+  background: var(--panel);
+  border: 1px solid var(--wall-line);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
 /* Empty state */
 
 .empty {
@@ -578,13 +646,20 @@ a {
   line-height: 1;
 }
 
-/* Theme toggle */
+/* Corner controls: theme toggle + account badge */
 
-.theme-toggle {
+.corner-controls {
   position: fixed;
   top: 20px;
   right: 20px;
   z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.theme-toggle,
+.account-badge {
   display: flex;
   align-items: center;
   gap: 7px;
@@ -600,7 +675,8 @@ a {
   cursor: pointer;
 }
 
-.theme-toggle:hover {
+.theme-toggle:hover,
+.account-badge:hover {
   border-color: var(--blueprint);
   color: var(--blueprint);
 }
@@ -611,14 +687,44 @@ a {
   color: var(--amber);
 }
 
+.account-badge {
+  padding: 5px 12px 5px 5px;
+}
+
+.account-badge__avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
+.account-badge__avatar--fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--tint-blueprint);
+  color: var(--blueprint);
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 12px;
+}
+
 @media (max-width: 480px) {
-  .theme-toggle {
+  .corner-controls {
     top: 12px;
     right: 12px;
+    gap: 8px;
+  }
+  .theme-toggle {
     padding: 6px 10px 6px 9px;
   }
-  .theme-toggle__label {
+  .theme-toggle__label,
+  .account-badge__label {
     display: none;
+  }
+  .account-badge {
+    padding: 4px;
   }
   .tunnel__name {
     font-size: 14px;
