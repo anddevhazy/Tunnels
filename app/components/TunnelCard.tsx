@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { statusFor, type Tunnel } from "../lib/useDecisions";
+import ConfirmDialog from "./ConfirmDialog";
 
 // Horizontal scatter (px) and stagger (s) for each falling grain of the
 // breakthrough spill — spread out so they don't all drop as one clump.
@@ -33,6 +35,8 @@ export default function TunnelCard({
   onCommitName: (name: string) => void;
   onRemove: () => void;
 }) {
+  const [confirming, setConfirming] = useState(false);
+
   return (
     <article className="tunnel">
       <div className="tunnel__row">
@@ -55,7 +59,12 @@ export default function TunnelCard({
           <span className="tunnel__pct-sign">%</span>
         </div>
         {!locked && (
-          <button className="tunnel__remove" aria-label="Remove tunnel" title="Abandon bore" onClick={onRemove}>
+          <button
+            className="tunnel__remove"
+            aria-label="Remove tunnel"
+            title="Abandon bore"
+            onClick={() => setConfirming(true)}
+          >
             ×
           </button>
         )}
@@ -106,6 +115,18 @@ export default function TunnelCard({
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={confirming}
+        title="Abandon this bore?"
+        message={`"${tunnel.name}" and its field notes will be permanently deleted. This can't be undone.`}
+        confirmLabel="delete"
+        onCancel={() => setConfirming(false)}
+        onConfirm={() => {
+          onRemove();
+          setConfirming(false);
+        }}
+      />
     </article>
   );
 }

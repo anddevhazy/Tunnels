@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useDecisionsContext } from "../lib/DecisionsProvider";
+import ConfirmDialog from "./ConfirmDialog";
 
 export default function DecisionsIndex() {
   const router = useRouter();
@@ -10,6 +11,7 @@ export default function DecisionsIndex() {
     useDecisionsContext();
   const [today, setToday] = useState("");
   const [tab, setTab] = useState<"open" | "concluded">("open");
+  const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
     setToday(
@@ -107,7 +109,7 @@ export default function DecisionsIndex() {
                   className="decision__remove"
                   onClick={(e) => {
                     e.stopPropagation();
-                    removeDecision(decision.id);
+                    setConfirmDelete({ id: decision.id, name: decision.name });
                   }}
                   aria-label="Delete decision"
                   title="Delete decision"
@@ -137,6 +139,18 @@ export default function DecisionsIndex() {
         <span className="add-btn__plus">+</span>
         <span className="add-btn__text">new decision</span>
       </button>
+
+      <ConfirmDialog
+        open={confirmDelete !== null}
+        title="Delete this decision?"
+        message={`"${confirmDelete?.name}" and all of its bores will be permanently deleted. This can't be undone.`}
+        confirmLabel="delete"
+        onCancel={() => setConfirmDelete(null)}
+        onConfirm={() => {
+          if (confirmDelete) removeDecision(confirmDelete.id);
+          setConfirmDelete(null);
+        }}
+      />
     </div>
   );
 }
