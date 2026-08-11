@@ -9,6 +9,7 @@ export default function DecisionsIndex() {
   const { decisions, ready, addDecision, renameDecision, commitDecisionName, removeDecision } =
     useDecisionsContext();
   const [today, setToday] = useState("");
+  const [tab, setTab] = useState<"open" | "concluded">("open");
 
   useEffect(() => {
     setToday(
@@ -25,7 +26,10 @@ export default function DecisionsIndex() {
     router.push(`/decisions/${id}`);
   }
 
-  const hasDecisions = ready && decisions.length > 0;
+  const openDecisions = decisions.filter((d) => !d.concludedAt);
+  const concludedDecisions = decisions.filter((d) => d.concludedAt);
+  const shown = tab === "open" ? openDecisions : concludedDecisions;
+  const hasShown = ready && shown.length > 0;
 
   return (
     <div className="page">
@@ -40,7 +44,28 @@ export default function DecisionsIndex() {
         </div>
       </header>
 
-      {hasDecisions && (
+      <div className="tabs" role="tablist">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === "open"}
+          className={`tabs__tab ${tab === "open" ? "tabs__tab--active" : ""}`}
+          onClick={() => setTab("open")}
+        >
+          open <span className="tabs__count">{openDecisions.length}</span>
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === "concluded"}
+          className={`tabs__tab ${tab === "concluded" ? "tabs__tab--active" : ""}`}
+          onClick={() => setTab("concluded")}
+        >
+          concluded <span className="tabs__count">{concludedDecisions.length}</span>
+        </button>
+      </div>
+
+      {hasShown && (
         <div className="ledger-head">
           <span>decision</span>
           <span className="ledger-head__progress">bores</span>
@@ -48,20 +73,22 @@ export default function DecisionsIndex() {
       )}
 
       <main className="decisions" aria-live="polite">
-        {decisions.map((decision) => {
+        {shown.map((decision) => {
           const avg = decision.tunnels.length
             ? Math.round(decision.tunnels.reduce((sum, t) => sum + t.fill, 0) / decision.tunnels.length)
             : 0;
+          const concluded = Boolean(decision.concludedAt);
           return (
             <article
               key={decision.id}
-              className="decision"
+              className={`decision ${concluded ? "decision--concluded" : ""}`}
               onClick={() => router.push(`/decisions/${decision.id}`)}
             >
               <div className="decision__id">№{String(decision.seq).padStart(2, "0")}</div>
               <input
                 className="decision__name"
                 value={decision.name}
+                readOnly={concluded}
                 onClick={(e) => e.stopPropagation()}
                 onChange={(e) => renameDecision(decision.id, e.target.value)}
                 onFocus={(e) => e.target.select()}
@@ -72,23 +99,26 @@ export default function DecisionsIndex() {
                 spellCheck={false}
                 aria-label="Decision name"
               />
+              {concluded && <span className="decision__stamp">concluded</span>}
               <div className="decision__stats">
                 <span className="decision__count">
                   {decision.tunnels.length} bore{decision.tunnels.length === 1 ? "" : "s"}
                 </span>
                 <span className="decision__avg">{decision.tunnels.length ? `${avg}% avg` : "—"}</span>
               </div>
-              <button
-                className="decision__remove"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  removeDecision(decision.id);
-                }}
-                aria-label="Delete decision"
-                title="Delete decision"
-              >
-                ×
-              </button>
+              {!concluded && (
+                <button
+                  className="decision__remove"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeDecision(decision.id);
+                  }}
+                  aria-label="Delete decision"
+                  title="Delete decision"
+                >
+                  ×
+                </button>
+              )}
               <span className="decision__open" aria-hidden="true">
                 →
               </span>
@@ -97,10 +127,14 @@ export default function DecisionsIndex() {
         })}
       </main>
 
-      {ready && !hasDecisions && (
+      {ready && !hasShown && tab === "open" && (
         <p className="empty">
-          no decisions yet — press <strong>+</strong> to open one.
+          no open decisions — press <strong>+</strong> to open one.
         </p>
+      )}
+
+      {ready && !hasShown && tab === "concluded" && (
+        <p className="empty">no concluded decisions yet.</p>
       )}
 
       <button className="add-btn" onClick={handleAdd} aria-label="Add new decision">

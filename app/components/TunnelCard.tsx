@@ -19,6 +19,7 @@ const SPILL_PARTICLES = [
 export default function TunnelCard({
   decisionId,
   tunnel,
+  locked = false,
   onFill,
   onRename,
   onCommitName,
@@ -26,6 +27,7 @@ export default function TunnelCard({
 }: {
   decisionId: string;
   tunnel: Tunnel;
+  locked?: boolean;
   onFill: (fill: number) => void;
   onRename: (name: string) => void;
   onCommitName: (name: string) => void;
@@ -38,6 +40,7 @@ export default function TunnelCard({
         <input
           className="tunnel__name"
           value={tunnel.name}
+          readOnly={locked}
           onChange={(e) => onRename(e.target.value)}
           onFocus={(e) => e.target.select()}
           onBlur={(e) => onCommitName(e.target.value)}
@@ -51,9 +54,11 @@ export default function TunnelCard({
           <span className="tunnel__pct-num">{tunnel.fill}</span>
           <span className="tunnel__pct-sign">%</span>
         </div>
-        <button className="tunnel__remove" aria-label="Remove tunnel" title="Abandon bore" onClick={onRemove}>
-          ×
-        </button>
+        {!locked && (
+          <button className="tunnel__remove" aria-label="Remove tunnel" title="Abandon bore" onClick={onRemove}>
+            ×
+          </button>
+        )}
       </div>
 
       <div className="shaft">
@@ -70,6 +75,7 @@ export default function TunnelCard({
           max={100}
           step={1}
           value={tunnel.fill}
+          disabled={locked}
           onChange={(e) => onFill(Number(e.target.value))}
           aria-label="Tunnel advance percentage"
         />
@@ -83,7 +89,7 @@ export default function TunnelCard({
 
       <div className="tunnel__bottom">
         <Link className="tunnel__notes-link" href={`/decisions/${decisionId}/bores/${tunnel.id}`}>
-          {tunnel.notes.trim() ? "field notes →" : "+ add field notes"}
+          {tunnel.notes.trim() ? "field notes →" : locked ? "field notes →" : "+ add field notes"}
         </Link>
 
         {tunnel.fill >= 100 && (

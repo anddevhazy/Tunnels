@@ -27,6 +27,7 @@ export type Decision = {
   name: string;
   notes: string;
   tunnels: Tunnel[];
+  concludedAt: string | null;
 };
 
 const FILL_DEBOUNCE_MS = 400;
@@ -89,6 +90,7 @@ export function useDecisions(uid: string | null) {
               seq: data.seq ?? 0,
               name: data.name ?? "",
               notes: data.notes ?? "",
+              concludedAt: data.concludedAt ?? null,
               tunnels: Array.isArray(data.tunnels)
                 ? data.tunnels.map((t: Partial<Tunnel>) => ({ ...t, notes: t.notes ?? "" }) as Tunnel)
                 : [],
@@ -156,30 +158,49 @@ export function useDecisions(uid: string | null) {
     return doc(db, "users", uid, "decisions", id);
   }
 
+  // A concluded decision is permanent and fully frozen: no edits, no new
+  // bores, no deleting it or any of its bores. Every mutator below checks
+  // this first so the lock holds regardless of which UI path calls it.
+  function isConcluded(decisionId: string) {
+    return decisionsRef.current.find((d) => d.id === decisionId)?.concludedAt != null;
+  }
+
   function addDecision() {
     if (!uid) throw new Error("Cannot add a decision while signed out");
     const ref = doc(collection(db, "users", uid, "decisions"));
     const seq = decisionsRef.current.reduce((max, d) => Math.max(max, d.seq || 0), 0) + 1;
     const name = "DECISION-" + String(seq).padStart(2, "0");
-    setLocal([...decisionsRef.current, { id: ref.id, seq, name, notes: "", tunnels: [] }]);
-    void setDoc(ref, { seq, name, notes: "", tunnels: [] });
+    setLocal([...decisionsRef.current, { id: ref.id, seq, name, notes: "", tunnels: [], concludedAt: null }]);
+    void setDoc(ref, { seq, name, notes: "", tunnels: [], concludedAt: null });
     return ref.id;
+  }
+
+  // Permanent: sets concludedAt and, from then on, every mutator below
+  // refuses to touch this decision or its bores.
+  function concludeDecision(id: string) {
+    if (isConcluded(id)) return;
+    const concludedAt = new Date().toISOString();
+    patchDecision(id, { concludedAt });
+    void updateDoc(decisionDoc(id), { concludedAt });
   }
 
   // Fires on every keystroke in the decision's own notes editor: update
   // local state instantly, debounce the write.
   function updateDecisionNotes(id: string, notes: string) {
+    if (isConcluded(id)) return;
     patchDecision(id, { notes });
     writeDebounced(`decision-notes:${id}`, id, { notes }, NOTES_DEBOUNCE_MS);
   }
 
   // Live-typing state while a name input is focused: local only, no network.
   function renameDecision(id: string, name: string) {
+    if (isConcluded(id)) return;
     patchDecision(id, { name });
   }
 
   // Called on blur: trims and persists.
   function commitDecisionName(id: string, name: string) {
+    if (isConcluded(id)) return;
     const trimmed = name.trim();
     if (!trimmed) return;
     patchDecision(id, { name: trimmed });
@@ -187,11 +208,13 @@ export function useDecisions(uid: string | null) {
   }
 
   function removeDecision(id: string) {
+    if (isConcluded(id)) return;
     setLocal(decisionsRef.current.filter((d) => d.id !== id));
     void deleteDoc(decisionDoc(id));
   }
 
   function addTunnel(decisionId: string) {
+    if (isConcluded(decisionId)) return;
     const decision = decisionsRef.current.find((d) => d.id === decisionId);
     if (!decision) return;
     const seq = decision.tunnels.reduce((max, t) => Math.max(max, t.seq || 0), 0) + 1;
@@ -208,6 +231,7 @@ export function useDecisions(uid: string | null) {
 
   // Fires on every slider tick: update local state instantly, debounce the write.
   function updateTunnelFill(decisionId: string, tunnelId: string, fill: number) {
+    if (isConcluded(decisionId)) return;
     const decision = decisionsRef.current.find((d) => d.id === decisionId);
     if (!decision) return;
     const tunnels = patchTunnels(
@@ -220,6 +244,7 @@ export function useDecisions(uid: string | null) {
   // Fires on every keystroke in the notes editor: update local state
   // instantly, debounce the write.
   function updateTunnelNotes(decisionId: string, tunnelId: string, notes: string) {
+    if (isConcluded(decisionId)) return;
     const decision = decisionsRef.current.find((d) => d.id === decisionId);
     if (!decision) return;
     const tunnels = patchTunnels(
@@ -230,6 +255,7 @@ export function useDecisions(uid: string | null) {
   }
 
   function renameTunnel(decisionId: string, tunnelId: string, name: string) {
+    if (isConcluded(decisionId)) return;
     const decision = decisionsRef.current.find((d) => d.id === decisionId);
     if (!decision) return;
     patchTunnels(
@@ -239,6 +265,7 @@ export function useDecisions(uid: string | null) {
   }
 
   function commitTunnelName(decisionId: string, tunnelId: string, name: string) {
+    if (isConcluded(decisionId)) return;
     const decision = decisionsRef.current.find((d) => d.id === decisionId);
     if (!decision) return;
     const trimmed = name.trim();
@@ -251,6 +278,7 @@ export function useDecisions(uid: string | null) {
   }
 
   function removeTunnel(decisionId: string, tunnelId: string) {
+    if (isConcluded(decisionId)) return;
     const decision = decisionsRef.current.find((d) => d.id === decisionId);
     if (!decision) return;
     const tunnels = patchTunnels(
@@ -267,6 +295,7 @@ export function useDecisions(uid: string | null) {
     renameDecision,
     commitDecisionName,
     updateDecisionNotes,
+    concludeDecision,
     removeDecision,
     addTunnel,
     updateTunnelFill,

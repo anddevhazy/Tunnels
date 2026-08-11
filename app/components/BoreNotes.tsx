@@ -25,6 +25,8 @@ export default function BoreNotes({ decisionId, tunnelId }: { decisionId: string
 
   if (!decision || !tunnel) return null;
 
+  const concluded = Boolean(decision.concludedAt);
+
   return (
     <div className="page">
       <div className="breadcrumb-row">
@@ -37,6 +39,7 @@ export default function BoreNotes({ decisionId, tunnelId }: { decisionId: string
         <input
           className="decision-title"
           value={tunnel.name}
+          readOnly={concluded}
           onChange={(e) => renameTunnel(decisionId, tunnelId, e.target.value)}
           onFocus={(e) => e.target.select()}
           onBlur={(e) => commitTunnelName(decisionId, tunnelId, e.target.value)}
@@ -46,6 +49,7 @@ export default function BoreNotes({ decisionId, tunnelId }: { decisionId: string
           spellCheck={false}
           aria-label="Bore name"
         />
+        {concluded && <span className="decision__stamp">concluded</span>}
         <div className="tunnel__pct tunnel__pct--static">
           <span className="tunnel__pct-num">{tunnel.fill}</span>
           <span className="tunnel__pct-sign">%</span>
@@ -74,9 +78,10 @@ export default function BoreNotes({ decisionId, tunnelId }: { decisionId: string
           id="bore-notes"
           className="notes__editor"
           value={tunnel.notes}
+          readOnly={concluded}
           onChange={(e) => updateTunnelNotes(decisionId, tunnelId, e.target.value)}
-          placeholder="What's driving this bore's advance? Record findings, blockers, next steps…"
-          spellCheck={true}
+          placeholder={concluded ? "no field notes were recorded." : "What's driving this bore's advance? Record findings, blockers, next steps…"}
+          spellCheck={!concluded}
         />
       </div>
     </div>

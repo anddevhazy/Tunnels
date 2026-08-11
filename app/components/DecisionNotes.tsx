@@ -23,6 +23,7 @@ export default function DecisionNotes({ decisionId }: { decisionId: string }) {
 
   if (!decision) return null;
 
+  const concluded = Boolean(decision.concludedAt);
   const avg = decision.tunnels.length
     ? Math.round(decision.tunnels.reduce((sum, t) => sum + t.fill, 0) / decision.tunnels.length)
     : 0;
@@ -39,6 +40,7 @@ export default function DecisionNotes({ decisionId }: { decisionId: string }) {
         <input
           className="decision-title"
           value={decision.name}
+          readOnly={concluded}
           onChange={(e) => renameDecision(decision.id, e.target.value)}
           onFocus={(e) => e.target.select()}
           onBlur={(e) => commitDecisionName(decision.id, e.target.value)}
@@ -48,6 +50,7 @@ export default function DecisionNotes({ decisionId }: { decisionId: string }) {
           spellCheck={false}
           aria-label="Decision name"
         />
+        {concluded && <span className="decision__stamp">concluded</span>}
         <span className="masthead__label">
           {decision.tunnels.length} bore{decision.tunnels.length === 1 ? "" : "s"}
           {decision.tunnels.length ? ` · ${avg}% avg` : ""}
@@ -62,9 +65,10 @@ export default function DecisionNotes({ decisionId }: { decisionId: string }) {
           id="decision-notes"
           className="notes__editor"
           value={decision.notes}
+          readOnly={concluded}
           onChange={(e) => updateDecisionNotes(decision.id, e.target.value)}
-          placeholder="What's the overall framing here? Record context, constraints, and the eventual call…"
-          spellCheck={true}
+          placeholder={concluded ? "no decision notes were recorded." : "What's the overall framing here? Record context, constraints, and the eventual call…"}
+          spellCheck={!concluded}
         />
       </div>
     </div>
