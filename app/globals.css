@@ -694,12 +694,6 @@ a {
   white-space: nowrap;
 }
 
-.decision__avg {
-  color: var(--amber);
-  font-size: 13px;
-  font-weight: 600;
-}
-
 .decision__remove {
   background: none;
   border: none;
