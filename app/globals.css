@@ -216,6 +216,7 @@ a {
   font-size: 16px;
   letter-spacing: 0.02em;
   flex: 1;
+  min-width: 0;
   outline: none;
   border-radius: 4px;
   padding: 2px 6px;
@@ -500,6 +501,7 @@ a {
 
 .masthead--decision {
   align-items: center;
+  gap: 16px;
 }
 
 .decision-title {
@@ -622,6 +624,9 @@ a {
     font-size: 14px;
   }
   .masthead__meta {
+    display: none;
+  }
+  .masthead--decision .masthead__label {
     display: none;
   }
   .decision__stats {
