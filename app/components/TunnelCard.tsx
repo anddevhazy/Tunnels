@@ -71,6 +71,8 @@ export default function TunnelCard({
       <Link className="tunnel__notes-link" href={`/decisions/${decisionId}/bores/${tunnel.id}`}>
         {tunnel.notes.trim() ? "field notes →" : "+ add field notes"}
       </Link>
+
+      {tunnel.fill >= 100 && <div className="tunnel__spill" aria-hidden="true" />}
     </article>
   );
 }

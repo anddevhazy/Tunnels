@@ -51,6 +51,18 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body suppressHydrationWarning>
+        <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden="true">
+          <defs>
+            {/* Rough, rounded rock-face silhouette for the shaft/fill ends —
+                each jag is a smoothed bump (quadratic curves through
+                midpoints) rather than a sharp polygon vertex. */}
+            <clipPath id="rock-edge" clipPathUnits="objectBoundingBox">
+              <path
+                d="M 0.0200 0.0200 Q 0.0400 0.0200, 0.1100 0.0100 Q 0.1800 0.0000, 0.2500 0.0150 Q 0.3200 0.0300, 0.3900 0.0200 Q 0.4600 0.0100, 0.5300 0.0150 Q 0.6000 0.0200, 0.6700 0.0100 Q 0.7400 0.0000, 0.8100 0.0150 Q 0.8800 0.0300, 0.9200 0.0200 Q 0.9600 0.0100, 0.9800 0.0650 Q 1.0000 0.1200, 0.9800 0.1950 Q 0.9600 0.2700, 0.9800 0.3450 Q 1.0000 0.4200, 0.9850 0.5000 Q 0.9700 0.5800, 0.9850 0.6600 Q 1.0000 0.7400, 0.9800 0.8100 Q 0.9600 0.8800, 0.9800 0.9300 Q 1.0000 0.9800, 0.9400 0.9800 Q 0.8800 0.9800, 0.8100 0.9900 Q 0.7400 1.0000, 0.6700 0.9850 Q 0.6000 0.9700, 0.5300 0.9800 Q 0.4600 0.9900, 0.3900 0.9850 Q 0.3200 0.9800, 0.2500 0.9900 Q 0.1800 1.0000, 0.1100 0.9950 Q 0.0400 0.9900, 0.0200 0.9350 Q 0.0000 0.8800, 0.0200 0.8100 Q 0.0400 0.7400, 0.0200 0.6600 Q 0.0000 0.5800, 0.0150 0.5000 Q 0.0300 0.4200, 0.0150 0.3450 Q 0.0000 0.2700, 0.0200 0.1950 Q 0.0400 0.1200, 0.0200 0.0700 Q 0.0000 0.0200, 0.0200 0.0200 Z"
+              />
+            </clipPath>
+          </defs>
+        </svg>
         <AuthProvider>
           <div className="corner-controls">
             <AccountBadge />
